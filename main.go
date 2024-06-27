@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	router "core-system/routes"
+	u "core-system/utils"
 )
 
 func main() {
@@ -14,11 +14,13 @@ func main() {
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
+	router.Use(u.LogMW)
+
 	srv := &http.Server{
 		Handler: router,
 		Addr:    Address,
 	}
 
-	log.Printf("Listening on %s\n", Address)
-	log.Fatal(srv.ListenAndServe())
+	u.GeneralLogger.Printf("Listening on %s\n", Address)
+	u.GeneralLogger.Fatal(srv.ListenAndServe())
 }

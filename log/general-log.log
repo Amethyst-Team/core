@@ -1,0 +1,7 @@
+General Logger:	2024/06/27 13:56:20 main.go:22: Listening on 0.0.0.0:8000
+General Logger:	2024/06/27 13:56:31 main.go:22: Listening on 0.0.0.0:8000
+General Logger:	2024/06/27 13:59:36 main.go:24: Listening on 0.0.0.0:8000
+General Logger:	2024/06/27 13:59:40 middleware.go:9: GET - /minecraft/hello (127.0.0.1:54373)
+General Logger:	2024/06/27 13:59:44 middleware.go:9: GET - /minecraft/hello (127.0.0.1:54373)
+General Logger:	2024/06/27 14:00:03 middleware.go:9: POST - /minecraft/hello (127.0.0.1:54373)
+General Logger:	2024/06/27 14:00:09 middleware.go:9: GET - /minecraft/hello (127.0.0.1:54373)
