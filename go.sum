@@ -2,3 +2,5 @@ github.com/abdfnx/gosh v0.4.0 h1:cBvmHw8yV3oXiAcORpi7Oip+MT6/5HBMOrvpn0cZNYM=
 github.com/abdfnx/gosh v0.4.0/go.mod h1:MUTJRMc7FpBb/bFnZ2U0hj48zj8284J1cS3AUiIRZ/o=
 github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
 github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
+golang.org/x/sys v0.21.0 h1:rF+pYz3DAGSQAxAu1CbC7catZg4ebC4UIeIhKxBZvws=
+golang.org/x/sys v0.21.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
