@@ -57,6 +57,8 @@ func main() {
 	// Log the server listening address.
 	s.Logger.Printf("Listening on %s\n", Address)
 
+	s.Logger.Print("branch testing")
+
 	// Start the server and log any errors that occur.
 	s.ErrorLog.Fatal(srv.ListenAndServe())
 }
