@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"net/http"
 	"os"
 	"runtime"
@@ -26,10 +27,8 @@ func main() {
 	elevated := w.IsAppAdmin()
 
 	if !elevated {
+		s.ErrorLog.Printf("Exiting because we can't escalate permissions to Administrator...")
 		os.Exit(1)
-	} else {
-		// Print the result to the console for debugging purposes.
-		s.Logger.Printf("Running privileged? %v\n", elevated)
 	}
 
 	// Prepare the router for handling HTTP requests.
@@ -38,8 +37,13 @@ func main() {
 	// Combine the listen address and port to form the server address.
 	Address := Options.LISTEN_ADDRESS + ":" + Options.LISTEN_PORT
 
+	var dir string
+
+	flag.StringVar(&dir, "dir", "./static/", "the directory to serve files from. Defaults to the current dir")
+	flag.Parse()
+
 	// Serve static files from the "./static/" directory.
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
+	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir(dir))))
 
 	// Add a middleware function to log HTTP requests.
 	router.Use(u.LogMW)

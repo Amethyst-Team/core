@@ -1,7 +1,6 @@
 package java
 
 import (
-	sys "core-system/system"
 	s "core-system/utils/system"
 	"strings"
 )
@@ -26,7 +25,7 @@ func InstallJava() error {
 		return err
 	}
 
-	sys.RestartSelf()
+	s.RestartSelf()
 
 	return nil
 }

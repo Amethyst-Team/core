@@ -40,7 +40,7 @@ func RunAppAsElevated() {
 	// If an error occurs, print it to the console.
 	err := windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd)
 	if err != nil {
-		s.Logger.Println(err)
+		s.ErrorLog.Println("Couldn't escalape permissions - user cancelled the operation.")
 	}
 }
 
