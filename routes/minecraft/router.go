@@ -2,9 +2,10 @@ package minecraft
 
 import (
 	"github.com/gorilla/mux"
-	//mc "core-system/logic/minecraft"
 )
 
 func PrepareRouter(router *mux.Router) {
+	router.HandleFunc("/install-minecraft", InstallMinecraft).Methods("GET")
 
+	router.HandleFunc("/start-minecraft", StartMinecraft).Methods("GET")
 }

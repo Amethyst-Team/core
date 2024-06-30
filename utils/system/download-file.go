@@ -2,6 +2,7 @@ package system
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -10,7 +11,8 @@ import (
 
 var downloads = "downloads"
 
-var workDir string
+var downloadDir string
+var Pwd string
 
 // init function initializes the working directory for downloads.
 // It sets the working directory to the current directory and creates a "downloads" folder if it doesn't exist.
@@ -28,7 +30,8 @@ func init() {
 	os.Mkdir(downloads, os.ModePerm)
 
 	// Set the working directory for downloads to the "downloads" folder within the current working directory.
-	workDir = path.Join(dir, downloads)
+	downloadDir = path.Join(dir, downloads)
+	Pwd = dir
 }
 
 // DownloadFile downloads a file from the given URL to the specified directory.
@@ -37,7 +40,7 @@ func init() {
 // The function returns the path of the downloaded file and any encountered errors.
 func DownloadFile(directory string, url string, overwrite bool) (filePath string, err error) {
 	// Construct the download directory path
-	downloadDir := path.Join(workDir, directory)
+	downloadDir := path.Join(downloadDir, directory)
 
 	// Create the download directory if it does not exist
 	err = os.MkdirAll(downloadDir, os.ModePerm)
@@ -47,7 +50,7 @@ func DownloadFile(directory string, url string, overwrite bool) (filePath string
 	fileName := urlSplit[len(urlSplit)-1]
 
 	// Construct the path to save the downloaded file
-	pathToSave := path.Join(workDir, directory, "\\"+fileName)
+	pathToSave := path.Join(downloadDir, "\\"+fileName)
 
 	// Remove the existing file if overwrite is set to true
 	if overwrite {
@@ -93,7 +96,7 @@ func DownloadFile(directory string, url string, overwrite bool) (filePath string
 	if err != nil {
 		return "", err
 	}
-
+	log.Print(pathToSave)
 	// Return the path of the downloaded file
 	return pathToSave, nil
 }

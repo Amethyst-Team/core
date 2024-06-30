@@ -12,6 +12,7 @@ func IsInstalled() error {
 	s.Logger.Printf("Checking if Java is installed...")
 
 	_, err := s.Exec("java -version")
+
 	if err != nil {
 		return err
 	} else {
