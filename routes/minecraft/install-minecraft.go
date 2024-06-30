@@ -2,43 +2,26 @@ package minecraft
 
 import (
 	mc "core-system/logic/minecraft"
-	structs "core-system/structs"
-	s "core-system/utils/system"
-	"encoding/json"
+	api_utils "core-system/utils/api"
 	"net/http"
 )
 
-// installJava handles the installation of Java.
-// It checks if Java is already installed. If not, it attempts to install Java.
-// It returns a JSON response with appropriate message and HTTP status code.
-// If Java is already installed, it returns a 400 status code with a message indicating that Java is already installed.
-// If the installation fails, it returns a 400 status code with a message indicating the failure.
-// If the installation is successful, it returns a 200 status code with a message indicating the success.
+// InstallMinecraft is a function that handles the installation of Minecraft server.
+// It takes an http.ResponseWriter and an http.Request as parameters.
+// The function calls the InstallMinecraft function from the "core-system/logic/minecraft" package.
+// If the return value of InstallMinecraft has a Code field that is not equal to 200,
+// the function writes a HTTP status code 400 (Bad Request) to the response writer and sends the return value using the SendResponse function from the "core-system/utils/api" package.
+// If the return value of InstallMinecraft has a Code field that is equal to 200,
+// the function writes a HTTP status code 200 (OK) to the response writer and sends the return value using the SendResponse function from the "core-system/utils/api" package.
 func InstallMinecraft(w http.ResponseWriter, r *http.Request) {
-	err := mc.InstallMinecraft()
+	ret := mc.InstallMinecraft()
 
-	if err != nil {
-		jsonResponse, jsonError := json.Marshal(structs.ApiError{
-			Message: err.Error(),
-			Code:    400,
-		})
-
-		if jsonError != nil {
-			s.Logger.Println("Unable to encode JSON")
-		}
-
-		w.Write(jsonResponse)
+	if ret.Code != 200 {
+		w.WriteHeader(http.StatusBadRequest)
+		api_utils.SendResponse(ret, w)
 		return
 	}
 
-	jsonResponse, jsonError := json.Marshal(structs.ApiError{
-		Message: "Minecraft is installed",
-		Code:    200,
-	})
-
-	if jsonError != nil {
-		s.Logger.Println("Unable to encode JSON")
-	}
-
-	w.Write(jsonResponse)
+	w.WriteHeader(http.StatusOK)
+	api_utils.SendResponse(ret, w)
 }

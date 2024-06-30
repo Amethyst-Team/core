@@ -2,111 +2,134 @@ package minecraft
 
 import (
 	"bufio"
+	"io"
 	"log"
-	"net/http"
-	"os"
 	"os/exec"
 	"path"
-	"time"
+	"sync"
 
-	"github.com/gorilla/websocket"
-
+	ws "core-system/logic/websockets"
+	"core-system/structs"
 	"core-system/utils/system"
 )
 
-var (
-	logger    *log.Logger
-	clients   = make(map[*websocket.Conn]bool)
-	broadcast = make(chan string)
-	upgrader  = websocket.Upgrader{
-		CheckOrigin: func(r *http.Request) bool {
-			return true
-		},
-	}
-)
+var cmdStdin io.WriteCloser
+var mu sync.Mutex
+var enableWebSocket bool
 
-// StartMinecraft starts the Minecraft server and sets up WebSocket broadcasting.
-func StartMinecraft(w http.ResponseWriter, r *http.Request) {
-	// Setup paths
+// StartMinecraft starts a Minecraft server process and sets up WebSocket communication.
+// It returns an ApiError if the WebSocket route is already enabled.
+//
+// Parameters:
+// w http.ResponseWriter: The response writer for HTTP requests.
+// r *http.Request: The HTTP request object.
+//
+// Return:
+// structs.ApiError: An ApiError object containing a message and a status code.
+func StartMinecraft() structs.ApiError {
+	// currently hardcoded till versions come out
+	wsRoute := "/minecraft-ws"
+
 	currentPwd := system.Pwd
-	mcServerPath := "minecraft/server" // Adjust as per your server path
+	mcServerPath := "server-data/minecraft/server"
 	serverInstallationPath := path.Join(currentPwd, mcServerPath)
-	logsDir := path.Join(currentPwd, "logs/minecraft-server", time.Now().Format("20060102_150405"))
-	os.MkdirAll(logsDir, os.ModePerm)
-	logFilePath := path.Join(logsDir, "server.log")
-
-	// Create log file
-	logFile, err := os.Create(logFilePath)
-	if err != nil {
-		log.Fatalf("Failed to create log file: %v", err)
-	}
-	defer logFile.Close()
-
-	// Setup logger
-	logger = log.New(logFile, "", log.LstdFlags)
-
-	// Create necessary folders and files
-	system.CreateFolder(serverInstallationPath)
-	logger.Println("Installing Minecraft server...")
-	eulaTxtPath := path.Join(serverInstallationPath, "eula.txt")
-	system.CreateFile(eulaTxtPath, "eula=true")
 	mcJar := path.Join(serverInstallationPath, "server.jar")
 
-	// Start the Minecraft server
-	command := "cd " + serverInstallationPath + "; java -Xmx1024M -Xms1024M -jar " + mcJar + " nogui"
+	command := "java -Xmx4096M -Xms4096M -jar " + mcJar + " nogui"
 	cmd := exec.Command("powershell", "-Command", command)
+	cmd.Dir = serverInstallationPath
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		logger.Fatalf("Failed to get stdout pipe: %v", err)
+		log.Fatalf("Failed to get stdout pipe: %v", err)
 	}
+
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		logger.Fatalf("Failed to get stderr pipe: %v", err)
+		log.Fatalf("Failed to get stderr pipe: %v", err)
 	}
-	if err := cmd.Start(); err != nil {
-		logger.Fatalf("Failed to start command: %v", err)
-	}
-	logger.Printf("Java process started with pid %d\n", cmd.Process.Pid)
 
-	// Start goroutines to handle output
-	go broadcastOutput(bufio.NewScanner(stdout))
-	go broadcastOutput(bufio.NewScanner(stderr))
-
-	// Dynamically register WebSocket handler
-	http.HandleFunc("/ws", MinecraftHandler)
-
-	// Return success response
-	w.Write([]byte("Minecraft server started successfully"))
-}
-
-// MinecraftHandler handles WebSocket connections for Minecraft logs
-func MinecraftHandler(w http.ResponseWriter, r *http.Request) {
-	ws, err := upgrader.Upgrade(w, r, nil)
+	cmdStdin, err = cmd.StdinPipe()
 	if err != nil {
-		log.Printf("Failed to upgrade to WebSocket: %v", err)
-		return
+		log.Fatalf("Failed to get stdin pipe: %v", err)
 	}
-	defer ws.Close()
 
-	clients[ws] = true
+	if err := cmd.Start(); err != nil {
+		log.Fatalf("Failed to start command: %v", err)
+	}
 
-	for {
-		_, _, err := ws.ReadMessage()
-		if err != nil {
-			delete(clients, ws)
-			break
+	log.Printf("Java process started with pid %d\n", cmd.Process.Pid)
+
+	go broadcastOutput(bufio.NewScanner(stdout), wsRoute)
+	go broadcastOutput(bufio.NewScanner(stderr), wsRoute)
+
+	mu.Lock()
+	defer mu.Unlock()
+
+	if !enableWebSocket {
+		ws.AddWSRoute(wsRoute, ws.HandleConnections)
+		enableWebSocket = true
+		log.Println("WebSocket route /ws enabled")
+
+		return structs.ApiError{
+			Message: "WebSocket route enabled",
+			Code:    200,
+		}
+	} else {
+		return structs.ApiError{
+			Message: "WebSocket route already enabled",
+			Code:    400,
 		}
 	}
 }
 
-// broadcastOutput reads scanner input and broadcasts to clients
-func broadcastOutput(scanner *bufio.Scanner) {
+// broadcastOutput reads from the provided bufio.Scanner and broadcasts each line to the WebSocket route.
+// It also logs each line to the console.
+//
+// Parameters:
+// scanner *bufio.Scanner: The scanner to read from.
+// wsRoute string: The WebSocket route to broadcast messages to.
+func broadcastOutput(scanner *bufio.Scanner, wsRoute string) {
+	// Loop through each line in the scanner
 	for scanner.Scan() {
+		// Get the text of the current line
 		msg := scanner.Text()
-		broadcast <- msg
-		logger.Println(msg)
+
+		// Broadcast the message to the WebSocket route
+		ws.BroadcastMessage(wsRoute, msg)
+
+		// Log the message to the console
+		log.Print(msg)
 	}
+
+	// If there was an error reading from the scanner, log it
 	if err := scanner.Err(); err != nil {
-		logger.Printf("Error reading output: %v", err)
+		log.Printf("Error reading output: %v", err)
 	}
+}
+
+// SendCommandToMinecraft sends a command to the Minecraft server process.
+// It writes the command to the stdin pipe of the Java process, effectively sending it to the server.
+//
+// Parameters:
+// command string: The command to send to the Minecraft server.
+//
+// Return:
+// error: An error if there was an issue writing to the stdin pipe of the Java process.
+//
+//	Returns nil if the command was successfully written.
+func SendCommandToMinecraft(command string) error {
+	// Lock the mutex to ensure that only one goroutine can access the cmdStdin pipe at a time.
+	mu.Lock()
+	defer mu.Unlock()
+
+	// Write the command to the stdin pipe of the Java process.
+	// Append a newline character to the command to ensure it is sent as a complete command.
+	if _, err := cmdStdin.Write([]byte(command + "\n")); err != nil {
+		// If there was an error writing to the pipe, return the error.
+		return err
+	}
+
+	// If the command was successfully written to the pipe, return nil.
+	return nil
 }

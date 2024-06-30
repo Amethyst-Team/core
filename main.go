@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"os"
 	"runtime"
 
 	router "core-system/routes"
 	u "core-system/utils"
-	s "core-system/utils/system"
+	walk "core-system/utils/api"
 	w "core-system/windows"
 )
 
@@ -27,7 +28,7 @@ func main() {
 	elevated := w.IsAppAdmin()
 
 	if !elevated {
-		s.ErrorLog.Printf("Exiting because we can't escalate permissions to Administrator...")
+		log.Printf("Exiting because we can't escalate permissions to Administrator...")
 		os.Exit(1)
 	}
 
@@ -54,9 +55,11 @@ func main() {
 		Addr:    Address,
 	}
 
+	walk.PrintEndpoints(router)
+
 	// Log the server listening address.
-	s.Logger.Printf("Listening on %s\n", Address)
+	log.Printf("Listening on %s\n", Address)
 
 	// Start the server and log any errors that occur.
-	s.ErrorLog.Fatal(srv.ListenAndServe())
+	log.Fatal(srv.ListenAndServe())
 }

@@ -1,13 +1,13 @@
 package utils
 
 import (
-	l "core-system/utils/system"
+	"log"
 	"net/http"
 )
 
 func LogMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		l.Logger.Printf("%s - %s (%s)", r.Method, r.URL.Path, r.RemoteAddr)
+		log.Printf("%s - %s (%s)", r.Method, r.URL.Path, r.RemoteAddr)
 
 		w.Header().Set("Content-Type", "application/json")
 

@@ -2,6 +2,7 @@ package java
 
 import (
 	s "core-system/utils/system"
+	"log"
 )
 
 // IsInstalled checks if Java is installed on the system.
@@ -9,7 +10,7 @@ import (
 // If the command execution returns an error, it means Java is not installed, and the function returns that error.
 // If the command execution is successful, it means Java is installed, and the function returns nil.
 func IsInstalled() error {
-	s.Logger.Printf("Checking if Java is installed...")
+	log.Printf("Checking if Java is installed...")
 
 	_, err := s.Exec("java -version")
 

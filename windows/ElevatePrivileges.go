@@ -1,7 +1,7 @@
 package windows
 
 import (
-	s "core-system/utils/system"
+	"log"
 	"os"
 	"strings"
 	"syscall"
@@ -40,7 +40,7 @@ func RunAppAsElevated() {
 	// If an error occurs, print it to the console.
 	err := windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd)
 	if err != nil {
-		s.ErrorLog.Println("Couldn't escalape permissions - user cancelled the operation.")
+		log.Println("Couldn't escalape permissions - user cancelled the operation.")
 	}
 }
 

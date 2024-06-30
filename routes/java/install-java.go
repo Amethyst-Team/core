@@ -3,8 +3,8 @@ package java
 import (
 	"core-system/logic/java"
 	structs "core-system/structs"
-	s "core-system/utils/system"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -25,7 +25,7 @@ func installJava(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if jsonError != nil {
-			s.Logger.Println("Unable to encode JSON")
+			log.Println("Unable to encode JSON")
 		}
 
 		w.Write(jsonResponse)
@@ -43,7 +43,7 @@ func installJava(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if jsonError != nil {
-			s.Logger.Println("Unable to encode JSON")
+			log.Println("Unable to encode JSON")
 		}
 
 		w.Write(jsonResponse)
@@ -56,7 +56,7 @@ func installJava(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if jsonError != nil {
-		s.Logger.Println("Unable to encode JSON")
+		log.Println("Unable to encode JSON")
 	}
 
 	w.Write(jsonResponse)

@@ -3,8 +3,8 @@ package java
 import (
 	"core-system/logic/java"
 	structs "core-system/structs"
-	s "core-system/utils/system"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -29,7 +29,7 @@ func isInstalled(w http.ResponseWriter, r *http.Request) {
 		// If there is an error while encoding JSON
 		if jsonError != nil {
 			// Log the error
-			s.Logger.Println("Unable to encode JSON")
+			log.Println("Unable to encode JSON")
 		}
 
 		// Write JSON response to the response writer
@@ -47,7 +47,7 @@ func isInstalled(w http.ResponseWriter, r *http.Request) {
 	// If there is an error while encoding JSON
 	if jsonError != nil {
 		// Log the error
-		s.Logger.Println("Unable to encode JSON")
+		log.Println("Unable to encode JSON")
 	}
 
 	// Write JSON response to the response writer

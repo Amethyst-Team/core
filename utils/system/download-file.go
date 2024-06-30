@@ -22,7 +22,7 @@ func init() {
 
 	// If an error occurs while getting the working directory, log the error and exit the program.
 	if err != nil {
-		ErrorLog.Printf("Error while getting working directory: %v\n", err)
+		log.Printf("Error while getting working directory: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -87,7 +87,7 @@ func DownloadFile(directory string, url string, overwrite bool) (filePath string
 
 	// Check the HTTP status code
 	if resp.StatusCode != http.StatusOK {
-		ErrorLog.Printf("failed to download file: %s", resp.Status)
+		log.Printf("Failed to download file: %s", resp.Status)
 		return "", err
 	}
 
